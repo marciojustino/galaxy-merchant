@@ -71,6 +71,10 @@ class GalaxyMerchantTransaction {
         return this.queryOperators.indexOf(term) === index;
     }
 
+    isMetal(term) {
+        return this.metals.filter(m => m.symbol === term).length > 0;
+    }
+
     compileTransaction(term, step = 1) {
         switch (step) {
             case 1:
@@ -89,6 +93,10 @@ class GalaxyMerchantTransaction {
                 if (this.isMetal(term)) {
                     step = 4;
                 }
+                break;
+
+            case 4:
+                
                 break;
         }
     }
