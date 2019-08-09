@@ -89,6 +89,9 @@ class GalaxyMerchantTransaction:
     def __get_metal(self, term):
         return [x for x in self.metals if x.symbol == term][0]
 
+    def __set_metal_value(self, metal: Metal, value):
+        [m for m in self.metals if m.symbol == metal.symbol][0].value = value
+
     def __is_number(self, term):
         try:
             return int(term)
@@ -102,8 +105,18 @@ class GalaxyMerchantTransaction:
         return int(term)
 
     def __calculate_metal_value(self):
-        # todo: transform galactic values and calculate metal value of transaction
-        return
+        galacticNumerals = [
+            g for g in self.compiledTransaction
+            if isinstance(g, GalacticNumeral)
+        ]
+        galacticNumeralsToRomanNumeral = ''
+        for g in galacticNumerals:
+            galacticNumeralsToRomanNumeral += g.romanNumeral.symbol
+
+        # translate roman value
+        decodedGalactictsValue = RomanNumeral.roman_to_int(galacticNumeralsToRomanNumeral)
+        totalCredits = [v for v in self.compiledTransaction if isinstance(v, int)][0]
+        self.__set_metal_value([m for m in self.compiledTransaction if isinstance(m, Metal)], (decodedGalactictsValue / totalCredits))
 
     def __set_galactict_value(self):
         [
@@ -160,14 +173,15 @@ class GalaxyMerchantTransaction:
     def __step_6(self, term):
         if term == self.TOKEN_CREDITS:
             self.compiledTransaction.append(term)
-            self.__step_final_7()   # finish flow
+            self.__step_final_7()  # finish flow
         else:
-            self.__step_error()     # error flow
+            self.__step_error()  # error flow
 
     def __step_final_7(self):
         """ finish flow: SUCCESS """
         # todo: set metal value on compiledTransaction when calculate
         self.__calculate_metal_value()
+        self.compiledTransactions.append(self.compiledTransaction)
 
     def __step_8(self, term):
         if self.__is_roman_numeral(term):
@@ -178,7 +192,6 @@ class GalaxyMerchantTransaction:
 
     def __step_final_9(self):
         """ finish flow: SUCCESS """
-        # todo: set galactic value on compiledTransaction
         self.__set_galactict_value()
         self.compiledTransactions.append(self.compiledTransaction)
 
