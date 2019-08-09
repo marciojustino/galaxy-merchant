@@ -1,4 +1,4 @@
-import roman_numeral as RomanNumeral
+from src.roman_numeral import RomanNumeral
 
 class GalacticNumeral:
     def __init__(self, symbol, romanNumeral: RomanNumeral):

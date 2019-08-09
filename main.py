@@ -1,4 +1,4 @@
-import galaxy_merchant as GalaxyMerchant
+from src.galaxy_merchant import GalaxyMerchant
 
 transactions = [
     'glob is I', 'prok is V', 'pish is X', 'tegj is L',
@@ -11,6 +11,4 @@ transactions = [
 ]
 
 merchant = GalaxyMerchant()
-for t in transactions:
-    result = merchant.process_transaction(t)
-    print(result)
+merchant.process_transaction(transactions)
