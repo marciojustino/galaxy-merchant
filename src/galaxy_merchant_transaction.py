@@ -4,7 +4,6 @@ from src.metal import Metal
 from src.transaction_token import TransactionToken
 from src.galaxy_merchant_exception import GalaxyMerchantException
 from src.roman_numeral_invalid_exception import RomanNumeralInvalidException
-from src.galactic_numeral_invalid_exception import GalacticNumeralInvalidException
 from src.galaxy_merchant_transaction_exception import GalaxyMerchantTransactionException
 from src.galaxy_merchant_transaction_invalid_token import GalaxyMerchantTransactionInvalidTokenException
 
@@ -296,7 +295,7 @@ class GalaxyMerchantTransaction:
                 self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Max of sequencial "galactic" reached (4)'))  # error flow
         elif term == self.TOKEN_QUESTION:
             if self.galacticsSequence < 2:
-                raise GalacticNumeralInvalidException()
+                raise GalacticNumeralInvalidException('Expected at least 2 galactics in a row but only 1 found')
             self.compiledTransaction.append(term)
             self.__step_final_13()  # finish flow
         else:
