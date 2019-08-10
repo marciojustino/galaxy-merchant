@@ -55,6 +55,3 @@ The application output is generated in `output/results.txt` and too in container
 ```shell
 docker-compose logs
 ```
-
-# Documentation
-## Automaton
