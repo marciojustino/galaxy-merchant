@@ -3,6 +3,10 @@ from src.galactic_numeral import GalacticNumeral
 from src.metal import Metal
 from src.transaction_token import TransactionToken
 from src.galaxy_merchant_exception import GalaxyMerchantException
+from src.roman_numeral_invalid_exception import RomanNumeralInvalidException
+from src.galactic_numeral_invalid_exception import GalacticNumeralInvalidException
+from src.galaxy_merchant_transaction_exception import GalaxyMerchantTransactionException
+from src.galaxy_merchant_transaction_invalid_token import GalaxyMerchantTransactionInvalidTokenException
 
 
 class GalaxyMerchantTransaction:
@@ -15,6 +19,7 @@ class GalaxyMerchantTransaction:
 
     compiledTransaction = []
     compiledTransactions = []
+    resolution = None
     step = 1
     galacticsSequence = 0
 
@@ -53,7 +58,7 @@ class GalaxyMerchantTransaction:
 
     def __create_metals(self):
         self.metals = [
-            Metal('Silver', 17),
+            Metal('Silver', None),
             Metal('Gold', 14450),
             Metal('Iron', 195.5)
         ]
@@ -64,12 +69,15 @@ class GalaxyMerchantTransaction:
 
     def __init_compiler(self):
         self.step = 1
+        self.galacticsSequence = 0
         self.compiledTransaction = []
+        self.resolution = None
 
     def process(self, terms):
         self.__init_compiler()
         for t in terms:
             self.__compile_transaction(t)
+        return self.resolution
 
     def __is_galactict(self, term):
         return [x for x in self.galacticNumerals if x.symbol == term]
@@ -89,8 +97,8 @@ class GalaxyMerchantTransaction:
     def __get_metal(self, term):
         return [x for x in self.metals if x.symbol == term][0]
 
-    def __set_metal_value(self, metal: Metal, value):
-        [m for m in self.metals if m.symbol == metal.symbol][0].value = value
+    def __set_metal_value(self, metal: Metal, newValue):
+        [m for m in self.metals if m.symbol == metal.symbol][0].value = newValue
 
     def __is_number(self, term):
         try:
@@ -104,32 +112,96 @@ class GalaxyMerchantTransaction:
     def __get_number(self, term):
         return int(term)
 
+    def __extract_metal_from_transaction(self):
+        return [m for m in self.compiledTransaction if isinstance(m, Metal)][0]
+
     def __calculate_metal_value(self):
-        galacticNumerals = [
-            g for g in self.compiledTransaction
-            if isinstance(g, GalacticNumeral)
-        ]
+        galacticNumerals = [g for g in self.compiledTransaction if isinstance(g, GalacticNumeral)]
         galacticNumeralsToRomanNumeral = ''
         for g in galacticNumerals:
             galacticNumeralsToRomanNumeral += g.romanNumeral.symbol
-
         # translate roman value
         decodedGalactictsValue = RomanNumeral.roman_to_int(galacticNumeralsToRomanNumeral)
         totalCredits = [v for v in self.compiledTransaction if isinstance(v, int)][0]
-        self.__set_metal_value([m for m in self.compiledTransaction if isinstance(m, Metal)], (decodedGalactictsValue / totalCredits))
+        self.__set_metal_value(self.__extract_metal_from_transaction(), (totalCredits / decodedGalactictsValue))
 
     def __set_galactict_value(self):
-        [
-            x for x in self.galacticNumerals
-            if x.symbol == self.compiledTransaction[0].symbol
-        ][0].romanNumeral = self.compiledTransaction[2]
+        [x for x in self.galacticNumerals if x.symbol == self.compiledTransaction[0].symbol][0].romanNumeral = self.compiledTransaction[2]
 
-    def __solve_expression(self, expression):
-        return 0
+    def __get_count_sequence_roman_numeral_in_transaction(self, galactic: GalacticNumeral):
+        indexes = []
+        for index, g in enumerate(self.compiledTransaction):
+            if isinstance(g, GalacticNumeral) and g.romanNumeral.symbol == galactic.romanNumeral.symbol:
+                indexes.append(index)
+        founded = 0
+        countIndexes = len(indexes)
+        subIndexes = countIndexes
+        for i in reversed(range(countIndexes)):
+            if indexes[i] < subIndexes - 1:
+                break
+            founded += 1
+            subIndexes -= indexes[i]
+        return founded
 
-    def __step_error(self):
+    def __get_last_galactic_in_transaction(self, galactic: GalacticNumeral):
+        results = [g for g in self.compiledTransaction if isinstance(g, GalacticNumeral) and g.romanNumeral.symbol == galactic.romanNumeral.symbol]
+        if results:
+            return results[-1]
+        return None
+
+    def __allow_subtract(self, galactic: GalacticNumeral):
+        lastGalacticInTransaction = self.__get_last_galactic_in_transaction(galactic)
+        if not lastGalacticInTransaction:
+            return True
+        return galactic.romanNumeral.is_subtract(lastGalacticInTransaction.romanNumeral)
+
+    def __reached_max_repeatable_sequence_roman_numeral_in_transaction(self, galactic: GalacticNumeral):
+        return self.__get_count_sequence_roman_numeral_in_transaction(galactic) == 3
+
+    def __check_possible_subtract(self, galactic: GalacticNumeral):
+        lastGalacticInTransaction = self.__get_last_galactic_in_transaction(galactic)
+        if not lastGalacticInTransaction:
+            return
+        if galactic.romanNumeral.symbol == lastGalacticInTransaction.romanNumeral.symbol:
+            return
+        if galactic.romanNumeral.is_subtract(lastGalacticInTransaction.romanNumeral):
+            return
+        raise RomanNumeralInvalidException()
+
+    def __validate_roman_numeral_repetitions(self, galactic: GalacticNumeral):
+        self.__check_possible_subtract(galactic)
+        countSequenceRomanNumeralInTransaction = self.__get_count_sequence_roman_numeral_in_transaction(galactic)
+        if countSequenceRomanNumeralInTransaction >= 1:
+            # allow insert until 3 roman numerals in sequence
+            if not galactic.romanNumeral.isRepeatable:
+                raise RomanNumeralInvalidException('Roman numeral {} is not repeatable'.format(galactic.romanNumeral.symbol))
+            if self.__reached_max_repeatable_sequence_roman_numeral_in_transaction(galactic):
+                raise RomanNumeralInvalidException('Max repeatable sequencial roman numeral {} reached'.format(galactic.romanNumeral.symbol))
+
+    def __get_all_galactics_in_compiled_transaction(self):
+        return [token for token in self.compiledTransaction if isinstance(token, GalacticNumeral)]
+
+    def __get_all_metals_in_compiled_transaction(self):
+        return [token for token in self.compiledTransaction if isinstance(token, Metal)]
+
+    def __solve_how_much_transaction(self):
+        allGalacticNumerals = self.__get_all_galactics_in_compiled_transaction()
+        romanString = GalacticNumeral.to_roman_string(allGalacticNumerals)
+        total = RomanNumeral.roman_to_int(romanString)
+        self.resolution = '{} is {}'.format(GalacticNumeral.only_symbols(allGalacticNumerals), total)
+
+    def __solve_how_many_transaction(self):
+        allGalacticNumerals = self.__get_all_galactics_in_compiled_transaction()
+        romanString = GalacticNumeral.to_roman_string(allGalacticNumerals)
+        metals = self.__get_all_metals_in_compiled_transaction()
+        total = RomanNumeral.roman_to_int(romanString)
+        for m in metals:
+            total *= m.value
+        self.resolution = '{} is {} Credits'.format(GalacticNumeral.only_symbols(allGalacticNumerals), total)
+
+    def __step_error(self, error: GalaxyMerchantTransactionException):
         """ final flow: ERROR """
-        raise GalaxyMerchantException()
+        raise GalaxyMerchantTransactionException()
 
     def __step_1(self, term):
         if self.__is_galactict(term):
@@ -139,7 +211,7 @@ class GalaxyMerchantTransaction:
             self.compiledTransaction.append(term)
             self.step = 10
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected "galactic" or "how" not found'))  # error flow
 
     def __step_2(self, term):
         if self.__is_galactict(term):
@@ -154,32 +226,31 @@ class GalaxyMerchantTransaction:
             self.compiledTransaction.append(self.__get_metal(term))
             self.step = 4
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected "metal" not found'))  # error flow
 
     def __step_4(self, term):
         if term == self.TOKEN_IS:
             self.compiledTransaction.append(term)
             self.step = 5
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected token "is" not found'))  # error flow
 
     def __step_5(self, term):
         if self.__is_number(term):
             self.compiledTransaction.append(self.__get_number(term))
             self.step = 6
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected value not found'))  # error flow
 
     def __step_6(self, term):
         if term == self.TOKEN_CREDITS:
             self.compiledTransaction.append(term)
             self.__step_final_7()  # finish flow
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected token "Credits" not found'))  # error flow
 
     def __step_final_7(self):
         """ finish flow: SUCCESS """
-        # todo: set metal value on compiledTransaction when calculate
         self.__calculate_metal_value()
         self.compiledTransactions.append(self.compiledTransaction)
 
@@ -188,7 +259,7 @@ class GalaxyMerchantTransaction:
             self.compiledTransaction.append(self.__get_roman_numeral(term))
             self.__step_final_9()  # finish flow
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected "roman numeral" not found'))  # error flow
 
     def __step_final_9(self):
         """ finish flow: SUCCESS """
@@ -203,68 +274,80 @@ class GalaxyMerchantTransaction:
             self.compiledTransaction.append(term)
             self.step = 14
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected token "much" or "many" not found'))  # error flow
 
     def __step_11(self, term):
         if term == self.TOKEN_IS:
             self.compiledTransaction.append(term)
             self.step = 12
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected token "is" not found'))  # error flow
 
     def __step_12(self, term):
         if self.__is_galactict(term):
             if self.galacticsSequence <= 4:
-                self.compiledTransaction.append(
-                    self.__get_galactict_operator(term))
+                # allow insert until 4 galactic numerals in transaction
+                galactic = self.__get_galactict(term)
+                if self.galacticsSequence >= 1:
+                    self.__validate_roman_numeral_repetitions(galactic)
                 self.galacticsSequence += 1
+                self.compiledTransaction.append(galactic)
             else:
-                self.__step_error()  # error flow
+                self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Max of sequencial "galactic" reached (4)'))  # error flow
         elif term == self.TOKEN_QUESTION:
+            if self.galacticsSequence < 2:
+                raise GalacticNumeralInvalidException()
             self.compiledTransaction.append(term)
-            self.galacticsSequence = 0
             self.__step_final_13()  # finish flow
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected "galactic" or token "?" not found'))  # error flow
 
     def __step_14(self, term):
-        if term == TOKEN_CREDITS:
+        if term == self.TOKEN_CREDITS:
             self.compiledTransaction.append(term)
             self.step = 15
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected token "Credits" not found'))  # error flow
 
     def __step_15(self, term):
-        if term == TOKEN_IS:
+        if term == self.TOKEN_IS:
             self.compiledTransaction.append(term)
             self.step = 16
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected token "is" not found'))  # error flow
 
     def __step_16(self, term):
         if self.__is_galactict(term):
-            if self.galacticsSequence <= 2:
-                self.compiledTransaction.append(self.__get_galactict(term))
+            if self.galacticsSequence <= 4:
+                galactic = self.__get_galactict(term)
+                if self.galacticsSequence >= 1:
+                    self.__validate_roman_numeral_repetitions(galactic)
                 self.galacticsSequence += 1
+                self.compiledTransaction.append(galactic)
             else:
-                self.__step_error
+                self.__step_error()  # error flow
         elif self.__is_metal(term):
             self.compiledTransaction.append(self.__get_metal(term))
             self.step = 17
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected an "galactic" or "metal" not found'))  # error flow
 
     def __step_17(self, term):
-        if term == TOKEN_QUESTION:
+        if term == self.TOKEN_QUESTION:
             self.compiledTransaction.append(term)
-            self.step = 999  # finish flow
+            self.__step_final_18()  # finish flow
         else:
-            self.__step_error()  # error flow
+            self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Expected token "?" not found'))  # error flow
+
+    def __step_final_18(self):
+        """ final flow: SUCCESS """
+        self.__solve_how_many_transaction()
+        self.compiledTransactions.append(self.compiledTransaction)
 
     def __step_final_13(self):
         """ final flow: SUCCESS """
-        # todo: calculate many credits in galacticts with metal
-        self.__solve_expression(self.compiledTransaction)
+        self.__solve_how_much_transaction()
+        self.compiledTransactions.append(self.compiledTransaction)
 
     stepFunctions = {
         -1: __step_error,
@@ -280,9 +363,10 @@ class GalaxyMerchantTransaction:
         10: __step_10,
         11: __step_11,
         12: __step_12,
-        999: __step_final_13,
+        13: __step_final_13,
         14: __step_14,
         15: __step_15,
         16: __step_16,
-        17: __step_17
+        17: __step_17,
+        18: __step_final_18
     }

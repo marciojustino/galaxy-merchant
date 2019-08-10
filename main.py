@@ -1,9 +1,14 @@
 from src.galaxy_merchant import GalaxyMerchant
 
-transactions = [
-    'glob is I', 'prok is V', 'pish is X', 'tegj is L',
-    'glob glob Silver is 34 Credits', 'glob prok Gold is 57800 Credits',
-    'pish pish Iron is 3910 Credits', 'how much is pish tegj glob glob ?'
+input = [
+    'glob is I',
+    'prok is V',
+    'pish is X',
+    'tegj is L',
+    'glob glob Silver is 34 Credits',
+    'glob prok Gold is 57800 Credits',
+    'pish pish Iron is 3910 Credits',
+    'how much is pish tegj glob glob ?',
     'how many Credits is glob prok Silver ?',
     'how many Credits is glob prok Gold ?',
     'how many Credits is glob prok Iron ?',
@@ -11,4 +16,6 @@ transactions = [
 ]
 
 merchant = GalaxyMerchant()
-merchant.process_transaction(transactions)
+results = merchant.process_transactions(input)
+for r in results:
+    print(r)

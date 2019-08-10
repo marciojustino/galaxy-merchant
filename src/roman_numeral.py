@@ -1,8 +1,31 @@
 class RomanNumeral:
-    def __init__(self, symbol, value, isRepetable):
+    def __init__(self, symbol, value, isRepeatable=False):
         self.symbol = symbol
         self.value = value
-        self.isRepetable = isRepetable
+        self.isRepeatable = isRepeatable
+        self.subtracts = []
+
+    def get_subtract(self, romanSubtract):
+        if not isinstance(romanSubtract, RomanNumeral):
+            return None
+
+        result = [r for r in self.subtracts if r.symbol == romanSubtract.symbol]
+        if result:
+            return result[0]
+        else:
+            return None
+
+    def get_subtracts(self):
+        return self.subtracts
+
+    def is_subtract(self, romanNumeral):
+        if not isinstance(romanNumeral, RomanNumeral):
+            raise TypeError()
+
+        if self.get_subtract(romanNumeral):
+            return True
+        else:
+            return False
 
     @staticmethod
     def int_to_roman(input):
