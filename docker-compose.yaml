@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  galaxy-merchant-app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: 'python3 main.py'
+    volumes:
+      - ./main.py:/opt/galaxy-merchant/main.py
+      - ./src:/opt/galaxy-merchant/src
+      - ./output:/opt/galaxy-merchant/output
