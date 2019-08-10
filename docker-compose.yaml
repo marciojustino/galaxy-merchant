@@ -9,4 +9,5 @@ services:
     volumes:
       - ./main.py:/opt/galaxy-merchant/main.py
       - ./src:/opt/galaxy-merchant/src
+      - ./input:/opt/galaxy-merchant/input
       - ./output:/opt/galaxy-merchant/output

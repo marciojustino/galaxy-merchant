@@ -1,4 +1,8 @@
 from src.galaxy_merchant import GalaxyMerchant
+import os
+
+inputFilePath = 'input'
+inputFileName = 'input.txt'
 
 input = [
     'glob is I',
@@ -15,7 +19,20 @@ input = [
     'how much wood could a woodchuck chuck if a woodchuck could chuck wood ?'
 ]
 
-merchant = GalaxyMerchant()
-results = merchant.process_transactions(input)
-for r in results:
-    print(r)
+def main():
+    try:
+        merchant = GalaxyMerchant()
+        if not os.path.exists('{}/{}'.format(inputFilePath, inputFileName)):
+            print('Input file not exists! Using default input... Path={}/{}'.format(inputFilePath, inputFileName))
+        else:
+            file = open('{}/{}'.format(inputFilePath, inputFileName), 'r')
+            input = [line.replace('\n', '') for line in file.readlines()]
+            file.close()
+        results = merchant.process_transactions(input)
+        for r in results:
+            print(r)
+    except Exception as error:
+        print('Ops! Something is wrong! Error={}'.format(error))
+
+if __name__ == "__main__":
+    main()
