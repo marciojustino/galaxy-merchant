@@ -1,5 +1,5 @@
-from src.galaxy_merchant_transaction import GalaxyMerchantTransaction
-from src.galaxy_merchant_exception import GalaxyMerchantException
+from src.merchant.galaxy_merchant_transaction import GalaxyMerchantTransaction
+from src.merchant.galaxy_merchant_exception import GalaxyMerchantException
 import re
 import os
 

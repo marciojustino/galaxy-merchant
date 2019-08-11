@@ -1,4 +1,4 @@
-from src.galaxy_merchant import GalaxyMerchant
+from src.merchant.galaxy_merchant import GalaxyMerchant
 import os
 
 inputFilePath = 'input'

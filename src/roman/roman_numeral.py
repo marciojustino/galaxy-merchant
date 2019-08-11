@@ -8,7 +8,6 @@ class RomanNumeral:
     def get_subtract(self, romanSubtract):
         if not isinstance(romanSubtract, RomanNumeral):
             return None
-
         result = [r for r in self.subtracts if r.symbol == romanSubtract.symbol]
         if result:
             return result[0]
@@ -21,7 +20,6 @@ class RomanNumeral:
     def is_subtract(self, romanNumeral):
         if not isinstance(romanNumeral, RomanNumeral):
             raise TypeError()
-
         if self.get_subtract(romanNumeral):
             return True
         else:
@@ -33,7 +31,6 @@ class RomanNumeral:
             raise TypeError('Expected integer, got %s' % type(input))
         if not 0 < input < 4000:
             raise ValueError('Argument must be between 1 and 3999')
-
         ints = (1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1)
         nums = ('M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
         result = []
@@ -41,7 +38,6 @@ class RomanNumeral:
             count = int(input / ints[i])
             result.append(nums[i] * count)
             input -= ints[i] * count
-
         return ''.join(result)
 
     @staticmethod
@@ -67,7 +63,6 @@ class RomanNumeral:
                     sum += value
             except KeyError:
                 raise ValueError('input is not a valid Roman numeral: %s' % input)
-
         # validate
         if RomanNumeral.int_to_roman(sum) == input:
             return sum

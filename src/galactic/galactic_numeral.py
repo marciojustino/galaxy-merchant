@@ -1,4 +1,4 @@
-from src.roman_numeral import RomanNumeral
+from src.roman.roman_numeral import RomanNumeral
 
 
 class GalacticNumeral:

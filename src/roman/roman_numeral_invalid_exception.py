@@ -1,4 +1,5 @@
-from src.roman_numeral_exception import RomanNumeralException
+from src.roman.roman_numeral_exception import RomanNumeralException
+
 
 class RomanNumeralInvalidException(RomanNumeralException):
     def __init__(self, message='Roman numeral invalid exception'):

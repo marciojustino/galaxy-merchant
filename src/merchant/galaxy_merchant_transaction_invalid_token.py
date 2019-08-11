@@ -1,4 +1,4 @@
-from src.galaxy_merchant_transaction_exception import GalaxyMerchantTransactionException
+from src.merchant.galaxy_merchant_transaction_exception import GalaxyMerchantTransactionException
 
 
 class GalaxyMerchantTransactionInvalidTokenException(GalaxyMerchantTransactionException):
