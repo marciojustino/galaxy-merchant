@@ -318,7 +318,7 @@ class GalaxyMerchantTransaction:
 
     def __step_16(self, term):
         if self.__is_galactict(term):
-            if self.galacticsSequence <= 5:
+            if self.galacticsSequence <= 6:
                 galactic = self.__get_galactict(term)
                 if self.galacticsSequence >= 1:
                     self.__validate_roman_numeral_repetitions(galactic)
