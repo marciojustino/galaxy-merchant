@@ -285,15 +285,15 @@ class GalaxyMerchantTransaction:
 
     def __step_12(self, term):
         if self.__is_galactict(term):
-            if self.galacticsSequence <= 5:
-                # allow insert until 4 galactic numerals in transaction
+            if self.galacticsSequence <= 6:
+                # allow insert until 7 galactic numerals in transaction
                 galactic = self.__get_galactict(term)
                 if self.galacticsSequence >= 1:
                     self.__validate_roman_numeral_repetitions(galactic)
                 self.galacticsSequence += 1
                 self.compiledTransaction.append(galactic)
             else:
-                self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Max of sequencial "galactic" reached (4)'))  # error flow
+                self.__step_error(GalaxyMerchantTransactionInvalidTokenException('Max of "galactic" in a row reached (7)'))  # error flow
         elif term == self.TOKEN_QUESTION:
             if self.galacticsSequence < 2:
                 raise GalacticNumeralException('Expected at least 2 galactics in a row but only 1 found')
